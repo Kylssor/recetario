@@ -12,6 +12,10 @@ export default function Register() {
   const [password, setPassword] = useState("");
   // Estado para la meta calórica del usuario
   const [calorieGoal, setCalorieGoal] = useState("");
+  // Estados adicionales para complementar el perfil
+  const [phone, setPhone] = useState("");
+  const [address, setAddress] = useState("");
+  const [idNumber, setIdNumber] = useState("");
   const [errors, setErrors] = useState({});
 
   const handleSubmit = (e) => {
@@ -23,6 +27,18 @@ export default function Register() {
     // Validación básica para la meta calórica: debe ser un número positivo
     if (!calorieGoal || isNaN(calorieGoal) || Number(calorieGoal) <= 0) {
       errs.calorieGoal = "Ingresa una meta calórica válida (número positivo)";
+    }
+    // Validación del número de teléfono (no vacío)
+    if (!phone.trim()) {
+      errs.phone = "Ingresa un número de teléfono";
+    }
+    // Validación de la dirección (no vacía)
+    if (!address.trim()) {
+      errs.address = "Ingresa una dirección";
+    }
+    // Validación del número de identificación (no vacío)
+    if (!idNumber.trim()) {
+      errs.idNumber = "Ingresa un número de identificación";
     }
     setErrors(errs);
     if (Object.keys(errs).length === 0) {
@@ -43,6 +59,9 @@ export default function Register() {
         password: password.trim(),
         calorieGoal: Number(calorieGoal),
         avatar: avatarUrl,
+        phone: phone.trim(),
+        address: address.trim(),
+        idNumber: idNumber.trim(),
       };
       users.push(newUser);
       localStorage.setItem("users", JSON.stringify(users));
@@ -99,6 +118,39 @@ export default function Register() {
         />
         {errors.calorieGoal && (
           <p className="text-red-500 text-sm">{errors.calorieGoal}</p>
+        )}
+        {/* Campo para número de teléfono */}
+        <input
+          className="border rounded-xl p-3"
+          type="tel"
+          placeholder="Número de teléfono"
+          value={phone}
+          onChange={(e) => setPhone(e.target.value)}
+        />
+        {errors.phone && (
+          <p className="text-red-500 text-sm">{errors.phone}</p>
+        )}
+        {/* Campo para dirección */}
+        <input
+          className="border rounded-xl p-3"
+          type="text"
+          placeholder="Dirección"
+          value={address}
+          onChange={(e) => setAddress(e.target.value)}
+        />
+        {errors.address && (
+          <p className="text-red-500 text-sm">{errors.address}</p>
+        )}
+        {/* Campo para número de identificación */}
+        <input
+          className="border rounded-xl p-3"
+          type="text"
+          placeholder="Número de identificación"
+          value={idNumber}
+          onChange={(e) => setIdNumber(e.target.value)}
+        />
+        {errors.idNumber && (
+          <p className="text-red-500 text-sm">{errors.idNumber}</p>
         )}
         <button className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl py-2">
           Registrarme

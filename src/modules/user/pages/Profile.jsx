@@ -70,6 +70,18 @@ export default function Profile() {
               {user.calorieGoal} kcal
             </span>
           </div>
+          <div>
+            <span className="font-medium text-emerald-700">Número de teléfono:</span>
+            <span className="ml-2 text-slate-700">{user.phone}</span>
+          </div>
+          <div>
+            <span className="font-medium text-emerald-700">Dirección:</span>
+            <span className="ml-2 text-slate-700">{user.address}</span>
+          </div>
+          <div>
+            <span className="font-medium text-emerald-700">Identificación:</span>
+            <span className="ml-2 text-slate-700">{user.idNumber}</span>
+          </div>
         </div>
         <div className="pt-4 border-t flex justify-between items-center">
           <Link
