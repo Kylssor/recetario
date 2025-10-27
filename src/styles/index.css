@@ -1,3 +1,8 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Importar los estilos de Font Awesome para poder usar iconos con etiquetas <i>.
+   Esto permite utilizar clases como fa-brands, fa-facebook, etc., sin tener
+   que importar módulos de JavaScript adicionales. */
+@import "@fortawesome/fontawesome-free/css/all.min.css";

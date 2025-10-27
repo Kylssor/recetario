@@ -1,7 +1,27 @@
 import { useState } from "react";
 import { useTransition, animated } from "@react-spring/web";
 
-const MOCK_INGREDIENTS = ["pollo","atún","zanahoria","avena","huevo","espinaca"];
+/**
+ * Barra de búsqueda con autocompletado de ingredientes.
+ *
+ * Muestra un campo de texto y un desplegable con sugerencias. Al pulsar
+ * Enter o el botón "Buscar", llama a `onSelect` con el término
+ * seleccionado. Para evitar que las sugerencias se sobrepongan al campo,
+ * el contenedor es relativo y el desplegable tiene z-index alto.
+ */
+const MOCK_INGREDIENTS = [
+  "pollo",
+  "atún",
+  "zanahoria",
+  "avena",
+  "huevo",
+  "espinaca",
+  "lentejas",
+  "quinoa",
+  "tomate",
+  "banana",
+  "pepino",
+];
 
 export default function SearchBar({ onSelect }) {
   const [query, setQuery] = useState("");
@@ -18,9 +38,15 @@ export default function SearchBar({ onSelect }) {
     config: { tension: 250, friction: 20 },
   });
 
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const trimmed = query.trim();
+    onSelect(trimmed);
+  };
+
   return (
-    <div className="relative w-full max-w-xl mx-auto">
-      <div className="flex gap-2">
+    <div className="relative w-full max-w-2xl mx-auto">
+      <form onSubmit={handleSubmit} className="flex gap-2">
         <input
           className="flex-1 border rounded-xl p-3"
           placeholder="Busca por ingrediente..."
@@ -30,17 +56,17 @@ export default function SearchBar({ onSelect }) {
           onBlur={() => setTimeout(() => setFocus(false), 150)}
         />
         <button
+          type="submit"
           className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl px-4"
-          onClick={() => onSelect(query)}
         >
           Buscar
         </button>
-      </div>
+      </form>
       {dropdown((style, show) =>
         show ? (
           <animated.ul
             style={style}
-            className="absolute left-0 right-0 mt-1 bg-white rounded-xl shadow"
+            className="absolute left-0 right-0 mt-1 bg-white border rounded-xl shadow z-50"
           >
             {suggestions.map((s) => (
               <li key={s}>
