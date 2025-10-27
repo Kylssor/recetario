@@ -1,6 +1,8 @@
-import { useState } from 'react';
-import { useSpring, animated } from '@react-spring/web';
+import { useState } from "react";
+import { useSpring, animated } from "@react-spring/web";
 
+// Tarjeta de receta con animación de rotación 3D. Muestra los datos
+// principales en la cara frontal y las instrucciones en la cara trasera.
 export default function RecipeCard({ recipe }) {
   const [flipped, setFlipped] = useState(false);
   const { transform, opacity } = useSpring({
@@ -12,31 +14,32 @@ export default function RecipeCard({ recipe }) {
     opacity: flipped ? 1 : 0,
     config: { mass: 5, tension: 500, friction: 80 },
   });
-
   return (
     <div
       onClick={() => setFlipped((state) => !state)}
-      className="relative w-full h-56 md:h-60 lg:h-64 perspective-[1000px] cursor-pointer"
+      className="relative w-full h-60 md:h-64 lg:h-72 perspective-[1000px] cursor-pointer"
     >
-      {/* Cara frontal */}
       <animated.div
-        style={{ opacity, transform, backfaceVisibility: 'hidden' }}
+        style={{ opacity, transform, backfaceVisibility: "hidden" }}
         className="absolute inset-0 bg-white rounded-2xl shadow p-4 flex flex-col justify-between"
       >
-        <h3 className="text-lg font-semibold text-emerald-800">{recipe.title}</h3>
-        <p className="text-sm text-slate-600 flex-1">{recipe.description}</p>
-        <div className="mt-2 flex gap-2 text-xs text-slate-500">
+        <h3 className="text-lg font-semibold text-emerald-800 line-clamp-2">
+          {recipe.title}
+        </h3>
+        <p className="text-sm text-slate-600 flex-1 mt-1 line-clamp-2">
+          {recipe.description}
+        </p>
+        <div className="mt-3 flex gap-3 text-xs text-slate-500">
           <span>{recipe.kcal} kcal</span>
           <span>{recipe.time}</span>
           <span>{recipe.level}</span>
         </div>
       </animated.div>
-      {/* Cara trasera */}
       <animated.div
         style={{
           opacity: backOpacity,
           transform: transform.to((t) => `${t} rotateY(180deg)`),
-          backfaceVisibility: 'hidden',
+          backfaceVisibility: "hidden",
         }}
         className="absolute inset-0 bg-emerald-50 rounded-2xl shadow p-4 overflow-auto"
       >
