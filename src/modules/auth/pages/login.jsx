@@ -1,42 +1,53 @@
 import { useNavigate, Link } from "react-router-dom";
 import { useState } from "react";
+import axios from "axios";
 
 /**
- * Página de inicio de sesión. Permite al usuario introducir correo y contraseña.
- * Incluye enlace a la página de registro si el usuario aún no tiene cuenta.
+ * Componente que renderiza la página de inicio de sesión.
+ * Permite al usuario autenticarse con su correo y contraseña.
  */
 export default function Login() {
   const nav = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  // Estado para errores de validación
+  // Almacena los errores de validación del formulario.
   const [errors, setErrors] = useState({});
 
   /**
-   * Maneja el envío del formulario. Valida que se hayan
-   * ingresado correo y contraseña antes de permitir el acceso.
-   * Si hay errores, los muestra; de lo contrario, navega a Home.
+   * Procesa el envío del formulario de inicio de sesión.
+   * Valida los campos y, si son correctos, envía una solicitud
+   * de autenticación al backend.
    */
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const errs = {};
     if (!email.trim()) errs.email = "Ingresa tu correo";
     if (!password.trim()) errs.password = "Ingresa tu contraseña";
+
     setErrors(errs);
     if (Object.keys(errs).length === 0) {
-      // Autenticación local: buscar usuario en localStorage
-      const usersStr = localStorage.getItem("users");
-      const users = usersStr ? JSON.parse(usersStr) : [];
-      const found = users.find(
-        (u) => u.email === email.trim() && u.password === password.trim(),
-      );
-      if (!found) {
-        setErrors({ credentials: "Correo o contraseña incorrectos" });
-        return;
+      try {
+        const response = await axios.post("http://localhost:3001/api/login", {
+          email: email.trim(),
+          password: password.trim(),
+        });
+        
+        const user = response.data;
+        sessionStorage.setItem("currentUser", JSON.stringify(user));
+        nav("/home", { state: { reset: true } });
+      } catch (error) {
+        if (
+          error.response &&
+          error.response.data &&
+          error.response.data.message
+        ) {
+          setErrors({ api: error.response.data.message });
+        } else {
+          setErrors({
+            api: "Ocurrió un error al iniciar sesión. Inténtalo de nuevo.",
+          });
+        }
       }
-      // Guardar usuario en sesión y navegar al home
-      sessionStorage.setItem("currentUser", JSON.stringify(found));
-      nav("/home", { state: { reset: true } });
     }
   };
 
@@ -63,7 +74,7 @@ export default function Login() {
           onChange={(e) => setPassword(e.target.value)}
         />
         {errors.password && <p className="text-red-500 text-sm">{errors.password}</p>}
-        {errors.credentials && <p className="text-red-500 text-sm">{errors.credentials}</p>}
+        {errors.api && <p className="text-red-500 text-sm text-center">{errors.api}</p>}
         <button
           type="submit"
           className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl py-2"

@@ -1,13 +1,23 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useSpring, animated } from "@react-spring/web";
 
 /**
- * Shell proporciona el layout general de la aplicación: cabecera animada y área principal.
- * Incluye enlaces de navegación a Inicio y Perfil.
+ * Componente de layout principal (Shell) que envuelve las vistas de la aplicación.
+ * Define la estructura general con un encabezado, área de contenido principal y pie de página.
  */
 export default function Shell({ children }) {
-  // Animación para la aparición del encabezado
+  const nav = useNavigate();
+  // Define la animación de entrada para el encabezado.
   const header = useSpring({ from: { opacity: 0, y: -8 }, to: { opacity: 1, y: 0 } });
+
+  /**
+   * Cierra la sesión del usuario eliminando sus datos de sessionStorage
+   * y redirigiendo a la página de inicio.
+   */
+  const handleLogout = () => {
+    sessionStorage.removeItem("currentUser");
+    nav("/");
+  };
 
   return (
     <div className="min-h-screen flex flex-col bg-emerald-50 text-slate-800">
@@ -28,17 +38,24 @@ export default function Shell({ children }) {
             <Link className="text-emerald-700 hover:underline" to="/profile">
               Perfil
             </Link>
+            <span className="text-slate-300">|</span>
+            <button
+              onClick={handleLogout}
+              className="text-red-600 hover:underline"
+            >
+              Cerrar sesión
+            </button>
           </nav>
         </div>
       </animated.header>
       <main className="max-w-6xl mx-auto px-4 py-6 flex-1">{children}</main>
-      {/* Pie de página con redes sociales y contacto */}
+      {/* Pie de página con información de contacto y redes sociales. */}
       <footer className="bg-emerald-100 text-emerald-800 py-6 mt-8">
         <div className="max-w-6xl mx-auto px-4 grid gap-4 md:flex md:justify-between md:items-center">
           <div>
-            <h3 className="font-semibold mb-2">Síguenos</h3>
+            <h3 className="font-semibold mb-4">Síguenos</h3>
             <div className="flex gap-6">
-              {/* Se utilizan clases de Font Awesome; requieren importar los estilos en src/styles/index.css */}
+              {/* Los iconos de redes sociales requieren la importación de Font Awesome. */}
               <a href="#" className="text-emerald-700 hover:text-emerald-600">
                 <i className="fa-brands fa-facebook fa-lg"></i>
               </a>

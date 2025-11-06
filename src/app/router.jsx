@@ -9,7 +9,7 @@ export const router = createBrowserRouter([
   { path: "/", element: <Login /> },
   { path: "/register", element: <Register /> },
   {
-    path: "/Profile",
+    path: "/profile",
     element: (
       <Shell>
         <Profile />

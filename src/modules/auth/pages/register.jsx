@@ -1,73 +1,89 @@
 import { useNavigate, Link } from "react-router-dom";
 import { useState } from "react";
+import axios from "axios";
 
 /**
- * Página de registro. Incluye una validación básica de nombre, correo y contraseña.
- * En un proyecto real, se debería enviar la información al backend y gestionar tokens.
+ * Componente que renderiza la página de registro para nuevos usuarios.
+ * Valida los campos del formulario y envía los datos al backend para crear una cuenta.
  */
 export default function Register() {
   const nav = useNavigate();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  // Estado para la meta calórica del usuario
+  // Almacena la meta calórica diaria del usuario.
   const [calorieGoal, setCalorieGoal] = useState("");
-  // Estados adicionales para complementar el perfil
+  // Almacena campos adicionales del perfil de usuario.
   const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
   const [idNumber, setIdNumber] = useState("");
   const [errors, setErrors] = useState({});
 
-  const handleSubmit = (e) => {
+  /**
+   * Procesa el envío del formulario de registro.
+   * Valida los campos y, si son correctos, envía una solicitud
+   * de registro al backend.
+   */
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const errs = {};
     if (name.trim().length < 2) errs.name = "Debe tener al menos 2 caracteres";
     if (!/\S+@\S+\.\S+/.test(email)) errs.email = "Correo inválido";
     if (password.trim().length < 6) errs.password = "Mínimo 6 caracteres";
-    // Validación básica para la meta calórica: debe ser un número positivo
+    // Validación para la meta calórica: debe ser un número positivo.
     if (!calorieGoal || isNaN(calorieGoal) || Number(calorieGoal) <= 0) {
       errs.calorieGoal = "Ingresa una meta calórica válida (número positivo)";
     }
-    // Validación del número de teléfono (no vacío)
+    // Validación del número de teléfono.
     if (!phone.trim()) {
       errs.phone = "Ingresa un número de teléfono";
     }
-    // Validación de la dirección (no vacía)
+    // Validación de la dirección.
     if (!address.trim()) {
       errs.address = "Ingresa una dirección";
     }
-    // Validación del número de identificación (no vacío)
+    // Validación del número de identificación.
     if (!idNumber.trim()) {
       errs.idNumber = "Ingresa un número de identificación";
     }
+
     setErrors(errs);
     if (Object.keys(errs).length === 0) {
-      // Registrar usuario en localStorage
-      const usersStr = localStorage.getItem("users");
-      const users = usersStr ? JSON.parse(usersStr) : [];
-      // Verificar si el correo ya está registrado
-      const exists = users.some((u) => u.email === email.trim());
-      if (exists) {
-        setErrors({ email: "Ya existe una cuenta con este correo" });
-        return;
+      try {
+        const newUserPayload = {
+          name: name.trim(),
+          email: email.trim(),
+          password: password.trim(),
+          calorieGoal: Number(calorieGoal),
+          phone: phone.trim(),
+          address: address.trim(),
+          idNumber: idNumber.trim(),
+        };
+
+        const response = await axios.post(
+          "http://localhost:3001/api/register",
+          newUserPayload,
+        );
+
+        // El backend devuelve el objeto del usuario (sin contraseña) para la sesión.
+        const user = response.data;
+        sessionStorage.setItem("currentUser", JSON.stringify(user));
+        nav("/home", { state: { reset: true } });
+      } catch (error) {
+        if (
+          error.response &&
+          error.response.data &&
+          error.response.data.message
+        ) {
+          // Extrae el mensaje de error específico devuelto por el backend.
+          setErrors({ api: error.response.data.message });
+        } else {
+          // Define un error genérico si la API no proporciona un mensaje.
+          setErrors({
+            api: "Ocurrió un error al registrar la cuenta. Inténtalo de nuevo.",
+          });
+        }
       }
-      // Generar avatar aleatorio usando pravatar
-      const avatarUrl = `https://i.pravatar.cc/150?u=${encodeURIComponent(email.trim())}`;
-      const newUser = {
-        name: name.trim(),
-        email: email.trim(),
-        password: password.trim(),
-        calorieGoal: Number(calorieGoal),
-        avatar: avatarUrl,
-        phone: phone.trim(),
-        address: address.trim(),
-        idNumber: idNumber.trim(),
-      };
-      users.push(newUser);
-      localStorage.setItem("users", JSON.stringify(users));
-      // Guardar usuario en sessionStorage para sesión actual
-      sessionStorage.setItem("currentUser", JSON.stringify(newUser));
-      nav("/home", { state: { reset: true } });
     }
   };
 
@@ -152,6 +168,7 @@ export default function Register() {
         {errors.idNumber && (
           <p className="text-red-500 text-sm">{errors.idNumber}</p>
         )}
+        {errors.api && <p className="text-red-500 text-sm text-center">{errors.api}</p>}
         <button className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl py-2">
           Registrarme
         </button>

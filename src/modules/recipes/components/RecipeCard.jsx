@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useSpring, animated } from "@react-spring/web";
+import usePlannerStore from "../../../stores/usePlannerStore";
 
 /**
  * Tarjeta de receta con animación de voltear.
@@ -11,6 +12,13 @@ import { useSpring, animated } from "@react-spring/web";
  */
 export default function RecipeCard({ recipe }) {
   const [flipped, setFlipped] = useState(false);
+  const addRecipe = usePlannerStore((state) => state.addRecipe);
+
+  const handleAddClick = (e) => {
+    e.stopPropagation(); // Evita que la tarjeta se voltee al hacer clic en el botón.
+    addRecipe(recipe);
+  };
+
   const { transform, opacity } = useSpring({
     transform: `perspective(1000px) rotateY(${flipped ? 180 : 0}deg)`,
     opacity: flipped ? 0 : 1,
@@ -31,6 +39,13 @@ export default function RecipeCard({ recipe }) {
         style={{ opacity, transform, backfaceVisibility: "hidden" }}
         className="absolute inset-0 bg-white rounded-2xl shadow overflow-hidden"
       >
+        <button
+          onClick={handleAddClick}
+          className="absolute top-2 right-2 z-10 bg-emerald-600 hover:bg-emerald-700 text-white rounded-full w-8 h-8 flex items-center justify-center text-lg font-bold transition-transform transform hover:scale-110"
+          title="Añadir al plan diario"
+        >
+          +
+        </button>
         {recipe.image && (
           <img
             src={recipe.image}
@@ -65,8 +80,8 @@ export default function RecipeCard({ recipe }) {
       >
         <h4 className="font-semibold text-emerald-700 mb-2">Instrucciones</h4>
         <ol className="list-decimal list-inside text-sm text-slate-700 space-y-1">
-          {recipe.steps.map((step, idx) => (
-            <li key={idx}>{step}</li>
+          {recipe.steps.map((step) => (
+            <li key={step.id}>{step.description}</li>
           ))}
         </ol>
       </animated.div>
