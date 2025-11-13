@@ -8,6 +8,7 @@ import {
   Tooltip,
   Legend,
 } from 'chart.js';
+import useLocale from '../../../utils/useLocale.js';
 
 // Se registran los componentes de Chart.js necesarios para un gráfico de barras.
 ChartJS.register(
@@ -20,31 +21,41 @@ ChartJS.register(
 );
 
 /**
- * Componente que renderiza un gráfico de barras mostrando el historial de consumo
- * de calorías de los últimos días.
+ * Componente que renderiza un gráfico de barras apilado mostrando el historial
+ * de consumo de calorías, con el excedente coloreado en rojo.
  *
  * @param {object} props - Las propiedades del componente.
  * @param {Array<{date: string, totalCalories: number}>} props.historyData - Los datos del historial.
- * @param {number} props.calorieGoal - La meta calórica diaria del usuario para la línea de referencia.
+ * @param {number} props.calorieGoal - La meta calórica diaria del usuario.
  */
 export default function CalorieHistoryChart({ historyData = [], calorieGoal = 2000 }) {
+  const locale = useLocale();
+  // Formatea las etiquetas de fecha de forma amigable (ej: Oct 26).
   const labels = historyData.map(item => {
-    // Formatea la fecha para mostrarla de forma más amigable (ej: Oct 26)
     const date = new Date(item.date);
-    return date.toLocaleDateString('es-ES', { month: 'short', day: 'numeric' });
+    return date.toLocaleDateString(locale, {
+      month: 'short',
+      day: 'numeric',
+    });
   });
+
+  // Se preparan los datos para los dos datasets que se apilarán.
+  const baseData = historyData.map(item => Math.min(item.totalCalories, calorieGoal));
+  const excessData = historyData.map(item => Math.max(0, item.totalCalories - calorieGoal));
 
   const data = {
     labels,
     datasets: [
       {
-        label: 'Calorías Consumidas',
-        data: historyData.map(item => item.totalCalories),
-        backgroundColor: (context) => {
-          // Cambia el color de la barra si las calorías consumidas superan la meta.
-          const value = context.raw;
-          return value > calorieGoal ? '#ef4444' : '#10b981'; // red-500 vs emerald-500
-        },
+        label: 'Calorías dentro de la meta',
+        data: baseData,
+        backgroundColor: '#10b981', // emerald-500
+        borderRadius: 4,
+      },
+      {
+        label: 'Excedente calórico',
+        data: excessData,
+        backgroundColor: '#ef4444', // red-500
         borderRadius: 4,
       },
     ],
@@ -56,26 +67,35 @@ export default function CalorieHistoryChart({ historyData = [], calorieGoal = 20
     devicePixelRatio: window.devicePixelRatio,
     plugins: {
       legend: {
-        display: false, // Se oculta la leyenda para un diseño más limpio.
+        display: false,
       },
-      title: {
-        display: true,
-        text: 'Consumo Calórico (Últimos 7 Días)',
-        font: {
-          size: 16,
-        },
-        color: '#064e3b', // emerald-800
-      },
+
       tooltip: {
         callbacks: {
+          // Muestra la etiqueta para el segmento específico (ej: "Excedente: 200 kcal").
           label: function (context) {
-            return `Consumidas: ${context.raw} kcal`;
+            if (!context.raw || context.raw === 0) {
+              return null;
+            }
+            return `${context.dataset.label}: ${context.raw} kcal`;
+          },
+          // Suma los valores de todos los segmentos en la barra para mostrar un total.
+          footer: function (tooltipItems) {
+            let sum = 0;
+            tooltipItems.forEach(function (tooltipItem) {
+              sum += tooltipItem.parsed.y;
+            });
+            return `Total: ${sum} kcal`;
           },
         },
       },
     },
     scales: {
+      x: {
+        stacked: true, // Esencial para apilar las barras horizontalmente.
+      },
       y: {
+        stacked: true, // Esencial para apilar las barras verticalmente.
         beginAtZero: true,
         title: {
           display: true,

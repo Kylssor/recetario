@@ -98,6 +98,55 @@ const MOCK_RECIPES = [
     ],
     image: "HuevoRevuelto.jpg",
   },
+  {
+    title: "Pasta con Atún y Tomate",
+    description: "Una comida rápida, económica y satisfactoria para cualquier día de la semana.",
+    kcal: 450,
+    time: "20 min",
+    level: "Fácil",
+    ingredients: ["pasta", "atún", "tomate", "cebolla", "aceite de oliva"],
+    steps: [
+      "Cocina 150g de pasta según las instrucciones del paquete.",
+      "Mientras tanto, pica finamente 1/2 cebolla y 1 tomate.",
+      "En una sartén, sofríe la cebolla en 1 cucharada de aceite de oliva hasta que esté transparente.",
+      "Añade el tomate picado y cocina por 5 minutos.",
+      "Escurre una lata de atún y añádelo a la sartén. Mezcla bien y sazona con sal y pimienta.",
+      "Escurre la pasta cocida y mézclala con la salsa de atún y tomate. Sirve caliente.",
+    ],
+
+  },
+  {
+    title: "Batido Verde Detox",
+    description: "Un batido refrescante y lleno de nutrientes para empezar el día con energía.",
+    kcal: 180,
+    time: "5 min",
+    level: "Fácil",
+    ingredients: ["espinaca", "pepino", "manzana verde", "limón", "jengibre"],
+    steps: [
+      "Lava bien 1 taza de espinacas frescas.",
+      "Pela y corta 1/2 pepino y 1 manzana verde en trozos.",
+      "Añade las espinacas, el pepino y la manzana a la licuadora.",
+      "Agrega el jugo de 1/2 limón y una rodaja pequeña de jengibre fresco.",
+      "Añade 1 taza de agua fría y licúa todo hasta que esté suave. Sirve inmediatamente.",
+    ],
+
+  },
+  {
+    title: "Tostadas de Aguacate y Huevo",
+    description: "Un desayuno clásico, nutritivo y delicioso que te mantendrá lleno.",
+    kcal: 320,
+    time: "10 min",
+    level: "Fácil",
+    ingredients: ["pan integral", "aguacate", "huevo", "limón"],
+    steps: [
+      "Tuesta 2 rebanadas de pan integral a tu gusto.",
+      "Mientras tanto, cocina 2 huevos a la plancha o pochados.",
+      "Machaca la pulpa de 1 aguacate maduro en un bol. Añade unas gotas de jugo de limón, sal y pimienta.",
+      "Unta el aguacate machacado sobre las tostadas calientes.",
+      "Coloca un huevo cocido sobre cada tostada. Opcional: decora con chile en hojuelas o cilantro.",
+    ],
+
+  },
 ];
 
 async function main() {

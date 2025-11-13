@@ -1,93 +1,59 @@
-import { useNavigate, Link } from "react-router-dom";
-import { useState } from "react";
-import axios from "axios";
+import { Link } from 'react-router-dom'
+import { useLogin } from '../hooks/useLogin'
+import { Button } from '../../../components/Button'
+import {
+  Card,
+  Input,
+  FormTitle,
+  ErrorText,
+} from '../../../components/Form'
 
 /**
- * Componente que renderiza la página de inicio de sesión.
- * Permite al usuario autenticarse con su correo y contraseña.
+ * Renders the login page using reusable UI components.
  */
 export default function Login() {
-  const nav = useNavigate();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  // Almacena los errores de validación del formulario.
-  const [errors, setErrors] = useState({});
-
-  /**
-   * Procesa el envío del formulario de inicio de sesión.
-   * Valida los campos y, si son correctos, envía una solicitud
-   * de autenticación al backend.
-   */
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    const errs = {};
-    if (!email.trim()) errs.email = "Ingresa tu correo";
-    if (!password.trim()) errs.password = "Ingresa tu contraseña";
-
-    setErrors(errs);
-    if (Object.keys(errs).length === 0) {
-      try {
-        const response = await axios.post("http://localhost:3001/api/login", {
-          email: email.trim(),
-          password: password.trim(),
-        });
-        
-        const user = response.data;
-        sessionStorage.setItem("currentUser", JSON.stringify(user));
-        nav("/home", { state: { reset: true } });
-      } catch (error) {
-        if (
-          error.response &&
-          error.response.data &&
-          error.response.data.message
-        ) {
-          setErrors({ api: error.response.data.message });
-        } else {
-          setErrors({
-            api: "Ocurrió un error al iniciar sesión. Inténtalo de nuevo.",
-          });
-        }
-      }
-    }
-  };
+  const { data, errors, handleChange, handleSubmit } = useLogin()
 
   return (
-    <div className="min-h-screen grid place-items-center bg-emerald-50">
-      <form
-        className="bg-white rounded-2xl shadow p-6 grid gap-3 w-full max-w-md"
-        onSubmit={handleSubmit}
-      >
-        <h1 className="text-xl font-semibold text-emerald-800">Iniciar sesión</h1>
-        <input
-          className="border rounded-xl p-3"
-          type="email"
-          placeholder="Correo"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
-        {errors.email && <p className="text-red-500 text-sm">{errors.email}</p>}
-        <input
-          className="border rounded-xl p-3"
-          type="password"
-          placeholder="Contraseña"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
-        {errors.password && <p className="text-red-500 text-sm">{errors.password}</p>}
-        {errors.api && <p className="text-red-500 text-sm text-center">{errors.api}</p>}
-        <button
-          type="submit"
-          className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl py-2"
-        >
-          Entrar
-        </button>
-        <p className="text-sm">
-          ¿No tienes cuenta? {" "}
-          <Link className="underline" to="/register">
-            Regístrate
-          </Link>
-        </p>
-      </form>
+    <div className="grid min-h-screen place-items-center bg-emerald-50">
+      <Card className="max-w-md">
+        <form className="grid gap-3" onSubmit={handleSubmit} noValidate>
+          <FormTitle>Iniciar sesión</FormTitle>
+          <div>
+            <Input
+              name="email"
+              type="email"
+              placeholder="Correo"
+              value={data.email}
+              onChange={handleChange}
+              required
+            />
+            {errors.email && <ErrorText className="mt-1">{errors.email}</ErrorText>}
+          </div>
+          <div>
+            <Input
+              name="password"
+              type="password"
+              placeholder="Contraseña"
+              value={data.password}
+              onChange={handleChange}
+              required
+            />
+            {errors.password && <ErrorText className="mt-1">{errors.password}</ErrorText>}
+          </div>
+
+          {errors.api && <ErrorText className="text-center">{errors.api}</ErrorText>}
+
+          <Button type="submit">Entrar</Button>
+
+          <p className="text-center text-sm">
+            ¿No tienes cuenta?{' '}
+            <Link className="font-semibold text-emerald-600 hover:underline" to="/register">
+              Regístrate
+            </Link>
+          </p>
+        </form>
+      </Card>
     </div>
-  );
+  )
 }

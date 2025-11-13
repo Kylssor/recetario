@@ -1,39 +1,54 @@
 import { Doughnut } from 'react-chartjs-2';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
 
-// Es necesario registrar los componentes de Chart.js que se van a utilizar
-// para que el árbol de dependencias funcione correctamente.
+// Es necesario registrar los componentes de Chart.js que se van a utilizar.
 ChartJS.register(ArcElement, Tooltip, Legend);
 
+// Helper to generate a vibrant, distinct color palette using the golden angle.
+const generateColorPalette = (count) => {
+  const colors = [];
+  const hueStart = 40; // Start with a nice green-ish color
+  const goldenAngle = 137.5;
+  
+  for (let i = 0; i < count; i++) {
+    const hue = (hueStart + i * goldenAngle) % 360;
+    colors.push(`hsl(${hue}, 65%, 55%)`);
+  }
+  return colors;
+};
+
 /**
- * Componente que renderiza un gráfico de dona para visualizar el consumo calórico
- * en comparación con una meta diaria.
+ * Componente que renderiza un gráfico de dona para visualizar el consumo calórico.
+ * Muestra cada receta como un segmento del gráfico.
  *
  * @param {object} props - Las propiedades del componente.
- * @param {number} props.consumedCalories - El total de calorías consumidas.
- * @param {number} props.calorieGoal - La meta calórica diaria del usuario.
+ * @param {Array} [props.planEntries=[]] - Array de las entradas del planificador diario.
+ * @param {number} [props.calorieGoal=2000] - La meta calórica diaria del usuario.
+ * @param {boolean} [props.interactive=true] - Si el gráfico debe tener tooltips y hover.
  */
-export default function DailyCalorieChart({ consumedCalories, calorieGoal }) {
-  // Se calculan las calorías restantes, asegurando que no sea un número negativo
-  // para la visualización en el gráfico.
-  const remainingCalories = Math.max(0, calorieGoal - consumedCalories);
-  const isOverGoal = consumedCalories > calorieGoal;
+export default function DailyCalorieChart({ planEntries = [], calorieGoal = 2000, interactive = true }) {
+  const totalCalories = planEntries.reduce((sum, entry) => sum + (entry.recipe?.kcal || 0), 0);
+
+  const chartLabels = planEntries.map(entry => entry.recipe?.title || 'Desconocido');
+  const dataValues = planEntries.map(entry => entry.recipe?.kcal || 0);
+  const backgroundColors = generateColorPalette(planEntries.length);
+
+  const remainingCalories = calorieGoal - totalCalories;
+  // Solo mostrar "Restantes" si no hemos superado la meta.
+  if (remainingCalories > 0) {
+    chartLabels.push('Restantes');
+    dataValues.push(remainingCalories);
+    backgroundColors.push('#e5e7eb'); // gray-200
+  }
 
   const data = {
-    labels: ['Consumidas', 'Restantes'],
+    labels: chartLabels,
     datasets: [
       {
         label: 'Calorías',
-        data: [consumedCalories, remainingCalories],
-        backgroundColor: [
-          // Cambia a color rojo si se supera la meta calórica.
-          isOverGoal ? '#dc2626' : '#059669', // red-600 vs emerald-600
-          '#e5e7eb', // gray-200
-        ],
-        borderColor: [
-          '#ffffff', // Borde blanco para separación visual
-          '#ffffff',
-        ],
+        data: dataValues,
+        backgroundColor: backgroundColors,
+        borderColor: ['#ffffff', '#ffffff'],
         borderWidth: 2,
       },
     ],
@@ -42,13 +57,13 @@ export default function DailyCalorieChart({ consumedCalories, calorieGoal }) {
   const options = {
     responsive: true,
     maintainAspectRatio: false,
-    cutout: '70%', // Controla el grosor del anillo del gráfico.
+    cutout: '70%',
     plugins: {
       legend: {
-        display: false, // Se oculta la leyenda para un diseño más limpio.
+        display: false,
       },
       tooltip: {
-        // Personaliza el texto que aparece al pasar el cursor sobre el gráfico.
+        enabled: interactive,
         callbacks: {
           label: function (context) {
             return `${context.label}: ${context.raw} kcal`;
@@ -56,6 +71,7 @@ export default function DailyCalorieChart({ consumedCalories, calorieGoal }) {
         },
       },
     },
+    events: interactive ? ['mousemove', 'mouseout', 'click', 'touchstart', 'touchmove'] : [],
   };
 
   return <Doughnut data={data} options={options} />;

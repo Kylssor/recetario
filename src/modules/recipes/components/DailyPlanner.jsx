@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
-import usePlannerStore from '../../../stores/usePlannerStore';
+import { useAuthStore } from '../../auth/stores/auth.js';
+import { usePlannerStore } from '../stores/planner.js';
 import DailyCalorieChart from './DailyCalorieChart';
+import { Button } from '../../../components/Button.jsx';
 
 /**
  * Componente que muestra el planificador diario.
@@ -13,15 +14,7 @@ export default function DailyPlanner() {
   const isLoading = usePlannerStore((state) => state.isLoading);
   const error = usePlannerStore((state) => state.error);
 
-  const [currentUser, setCurrentUser] = useState(null);
-
-  // Carga los datos del usuario desde sessionStorage al montar el componente.
-  useEffect(() => {
-    const storedUser = sessionStorage.getItem('currentUser');
-    if (storedUser) {
-      setCurrentUser(JSON.parse(storedUser));
-    }
-  }, []);
+  const currentUser = useAuthStore((state) => state.profile);
 
   // Calcula el total de calorías de las recetas en el plan.
   const totalCalories = planEntries.reduce((sum, entry) => sum + entry.recipe.kcal, 0);
@@ -45,7 +38,7 @@ export default function DailyPlanner() {
 
   if (isLoading) {
     return (
-      <div className="bg-white rounded-2xl shadow p-6 text-center">
+      <div className="p-4 text-center">
         <h2 className="text-xl font-semibold text-emerald-800 mb-2">Planificador Diario</h2>
         <p className="text-slate-600">Cargando tu plan...</p>
       </div>
@@ -54,7 +47,7 @@ export default function DailyPlanner() {
 
   if (error) {
     return (
-      <div className="bg-white rounded-2xl shadow p-6 text-center">
+      <div className="p-4 text-center">
         <h2 className="text-xl font-semibold text-red-700 mb-2">Error</h2>
         <p className="text-slate-600">{error}</p>
       </div>
@@ -63,7 +56,7 @@ export default function DailyPlanner() {
 
   if (planEntries.length === 0) {
     return (
-      <div className="bg-white rounded-2xl shadow p-6 text-center">
+      <div className="p-4 text-center">
         <h2 className="text-xl font-semibold text-emerald-800 mb-2">Planificador Diario</h2>
         <p className="text-slate-600">
           Añade recetas a tu plan diario para ver aquí tu progreso calórico.
@@ -73,10 +66,10 @@ export default function DailyPlanner() {
   }
 
   return (
-    <div className="bg-white rounded-2xl shadow p-6 grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+    <div className="flex flex-col gap-4 p-4">
       {/* Sección del gráfico */}
-      <div className="relative h-48 w-48 mx-auto">
-        <DailyCalorieChart consumedCalories={totalCalories} calorieGoal={calorieGoal} />
+      <div className="relative h-48 w-full self-center">
+        <DailyCalorieChart planEntries={planEntries} calorieGoal={calorieGoal} />
         <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
           <span className="text-2xl font-bold text-emerald-800">{totalCalories}</span>
           <span className="text-sm text-slate-500">de {calorieGoal} kcal</span>
@@ -102,13 +95,14 @@ export default function DailyPlanner() {
               </span>
               <div className="flex items-center gap-3">
                 <span className="text-sm font-medium text-emerald-700">{groupedRecipe.kcal} kcal</span>
-                <button
+                <Button
+                  variant="icon"
+                  size="icon"
                   onClick={() => removeRecipe(groupedRecipe.planEntryIds[0])}
-                  className="text-slate-500 hover:text-red-600 transition-colors"
                   title="Eliminar del plan"
                 >
                   <i className="fa-solid fa-trash-can"></i>
-                </button>
+                </Button>
               </div>
             </li>
           ))}

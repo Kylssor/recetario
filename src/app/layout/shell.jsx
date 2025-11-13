@@ -1,23 +1,36 @@
-import { Link, useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link, Outlet } from "react-router-dom";
 import { useSpring, animated } from "@react-spring/web";
+import SearchBar from "../../modules/recipes/components/SearchBar";
+import DailyPlanner from "../../modules/recipes/components/DailyPlanner.jsx";
+import { usePlannerStore } from "../../modules/recipes/stores/planner.js";
+import PlannerButton from "./components/PlannerButton.jsx";
+import HamburgerMenu from "./components/HamburgerMenu.jsx";
+import useClickOutside from "../../hooks/useClickOutside.js";
 
 /**
- * Componente de layout principal (Shell) que envuelve las vistas de la aplicación.
- * Define la estructura general con un encabezado, área de contenido principal y pie de página.
+ * Componente principal del layout de la aplicación (Shell).
+ *
+ * Este componente define la estructura visual persistente de la aplicación,
+ * incluyendo el encabezado (header), el área de contenido principal donde se
+ * renderizan las rutas anidadas, y el pie de página (footer).
  */
-export default function Shell({ children }) {
-  const nav = useNavigate();
-  // Define la animación de entrada para el encabezado.
-  const header = useSpring({ from: { opacity: 0, y: -8 }, to: { opacity: 1, y: 0 } });
+export default function Shell() {
+  const [isPlannerOpen, setIsPlannerOpen] = useState(false);
+  const fetchPlanner = usePlannerStore((state) => state.fetchPlanner);
 
-  /**
-   * Cierra la sesión del usuario eliminando sus datos de sessionStorage
-   * y redirigiendo a la página de inicio.
-   */
-  const handleLogout = () => {
-    sessionStorage.removeItem("currentUser");
-    nav("/");
-  };
+  // Carga los datos del planificador del usuario una vez al montar el componente.
+  useEffect(() => {
+    fetchPlanner();
+  }, [fetchPlanner]);
+
+  // Hook para cerrar el dropdown del planificador al hacer clic fuera de él.
+  const plannerRef = useClickOutside(() => {
+    setIsPlannerOpen(false);
+  });
+
+  // Animación para la aparición del encabezado.
+  const header = useSpring({ from: { opacity: 0, y: -8 }, to: { opacity: 1, y: 0 } });
 
   return (
     <div className="min-h-screen flex flex-col bg-emerald-50 text-slate-800">
@@ -25,31 +38,38 @@ export default function Shell({ children }) {
         style={header}
         className="sticky top-0 bg-emerald-50/80 backdrop-blur z-10"
       >
-        <div className="max-w-6xl mx-auto px-4 py-3 flex justify-between items-center">
-          <div className="font-semibold text-emerald-800">Recetario Verde</div>
+        <div className="max-w-6xl mx-auto px-4 py-3 flex justify-between items-center gap-4">
+          <Link
+            to="/home"
+            className="font-semibold text-emerald-800"
+          >
+            Recetario Verde
+          </Link>
+
+          <div className="flex-1 max-w-lg">
+            <SearchBar />
+          </div>
+
           <nav className="text-sm flex items-center gap-4">
-            <Link
-              className="text-emerald-700 hover:underline"
-              to="/home"
-              state={{ reset: true }}
-            >
-              Inicio
-            </Link>
-            <Link className="text-emerald-700 hover:underline" to="/profile">
-              Perfil
-            </Link>
-            <span className="text-slate-300">|</span>
-            <button
-              onClick={handleLogout}
-              className="text-red-600 hover:underline"
-            >
-              Cerrar sesión
-            </button>
+            {/* Dropdown del Planificador Diario */}
+            <div className="relative" ref={plannerRef}>
+              <PlannerButton onClick={() => setIsPlannerOpen((prev) => !prev)} />
+              {isPlannerOpen && (
+                <div className="absolute right-0 mt-2 w-lg max-w-lg rounded-2xl bg-white shadow-xl z-20">
+                  <DailyPlanner />
+                </div>
+              )}
+            </div>
+
+            {/* Menú de hamburguesa para opciones secundarias. */}
+            <HamburgerMenu />
           </nav>
         </div>
       </animated.header>
-      <main className="max-w-6xl mx-auto px-4 py-6 flex-1">{children}</main>
-      {/* Pie de página con información de contacto y redes sociales. */}
+      {/* El componente Outlet de React Router renderiza aquí la ruta anidada actual. */}
+      <main className="w-full px-4 py-6 flex-1">
+        <Outlet />
+      </main>
       <footer className="bg-emerald-100 text-emerald-800 py-6 mt-8">
         <div className="max-w-6xl mx-auto px-4 grid gap-4 md:flex md:justify-between md:items-center">
           <div>

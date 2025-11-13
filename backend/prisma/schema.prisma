@@ -6,7 +6,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -23,6 +23,7 @@ model User {
 
   recipes     Recipe[]
   plans       DailyPlan[]
+  pantryItems UserPantryItem[]
 
   @@map("users")
 }
@@ -86,4 +87,14 @@ model PlanEntry {
   recipeId Int
 
   @@map("plan_entries")
+}
+
+model UserPantryItem {
+  id             Int    @id @default(autoincrement())
+  ingredientName String
+  user           User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId         Int
+
+  @@unique([userId, ingredientName])
+  @@map("user_pantry_items")
 }

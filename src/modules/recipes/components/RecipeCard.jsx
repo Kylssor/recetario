@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useSpring, animated } from "@react-spring/web";
-import usePlannerStore from "../../../stores/usePlannerStore";
+import { usePlannerStore } from "../stores/planner";
+import { Button } from "../../../components/Button";
 
 /**
  * Tarjeta de receta con animación de voltear.
@@ -15,7 +16,6 @@ export default function RecipeCard({ recipe }) {
   const addRecipe = usePlannerStore((state) => state.addRecipe);
 
   const handleAddClick = (e) => {
-    e.stopPropagation(); // Evita que la tarjeta se voltee al hacer clic en el botón.
     addRecipe(recipe);
   };
 
@@ -31,21 +31,25 @@ export default function RecipeCard({ recipe }) {
 
   return (
     <div
-      onClick={() => setFlipped((state) => !state)}
-      className="relative w-full h-72 cursor-pointer select-none"
+      className="relative w-full h-80 select-none"
+      aria-live="polite"
     >
       {/* Cara frontal */}
       <animated.div
-        style={{ opacity, transform, backfaceVisibility: "hidden" }}
-        className="absolute inset-0 bg-white rounded-2xl shadow overflow-hidden"
+        id="recipe-front"
+        style={{ opacity, transform, backfaceVisibility: 'hidden' }}
+        className="absolute inset-0 flex flex-col overflow-hidden rounded-2xl bg-white shadow"
+        aria-hidden={flipped}
       >
-        <button
+        <Button
+          variant="primary"
+          size="icon"
           onClick={handleAddClick}
-          className="absolute top-2 right-2 z-10 bg-emerald-600 hover:bg-emerald-700 text-white rounded-full w-8 h-8 flex items-center justify-center text-lg font-bold transition-transform transform hover:scale-110"
+          className="absolute top-2 right-2 z-10 rounded-full text-lg font-bold transition-transform transform hover:scale-110"
           title="Añadir al plan diario"
         >
           +
-        </button>
+        </Button>
         {recipe.image && (
           <img
             src={recipe.image}
@@ -53,7 +57,7 @@ export default function RecipeCard({ recipe }) {
             className="w-full h-32 object-cover rounded-t-2xl"
           />
         )}
-        <div className="p-4 h-40 flex flex-col justify-between">
+        <div className="flex flex-1 flex-col justify-between p-4">
           <div>
             <h3 className="text-lg font-semibold text-emerald-800">
               {recipe.title}
@@ -67,19 +71,39 @@ export default function RecipeCard({ recipe }) {
             <span>{recipe.time}</span>
             <span>{recipe.level}</span>
           </div>
+          <Button
+            variant="link"
+            onClick={() => setFlipped(true)}
+            className="mt-2 text-sm self-start p-0"
+            aria-controls="recipe-back"
+          >
+            Ver instrucciones
+          </Button>
         </div>
       </animated.div>
       {/* Cara trasera */}
       <animated.div
+        id="recipe-back"
         style={{
           opacity: backOpacity,
           transform: transform.to((t) => `${t} rotateY(180deg)`),
-          backfaceVisibility: "hidden",
+          backfaceVisibility: 'hidden',
         }}
-        className="absolute inset-0 bg-emerald-50 rounded-2xl shadow overflow-auto p-4"
+        className="absolute inset-0 flex flex-col overflow-auto rounded-2xl bg-emerald-50 p-4 shadow"
+        aria-hidden={!flipped}
       >
-        <h4 className="font-semibold text-emerald-700 mb-2">Instrucciones</h4>
-        <ol className="list-decimal list-inside text-sm text-slate-700 space-y-1">
+        <div className="flex items-center justify-between">
+          <h4 className="font-semibold text-emerald-700">Instrucciones</h4>
+          <Button
+            variant="link"
+            onClick={() => setFlipped(false)}
+            className="text-sm p-0"
+            aria-controls="recipe-front"
+          >
+            Volver
+          </Button>
+        </div>
+        <ol className="mt-2 list-inside list-decimal space-y-1 text-sm text-slate-700">
           {recipe.steps.map((step) => (
             <li key={step.id}>{step.description}</li>
           ))}
